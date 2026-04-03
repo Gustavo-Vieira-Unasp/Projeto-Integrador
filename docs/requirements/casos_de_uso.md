@@ -20,7 +20,7 @@
 ## UC-01: Monitorar Dados Ambientais em Tempo Real
 
 | Campo | Descrição |
-|---|---|
+| ----- | --------- |
 | **ID** | UC-01 |
 | **Nome** | Monitorar Dados Ambientais em Tempo Real |
 | **Ator Principal** | ESP32 (Sistema Embarcado) |
@@ -47,6 +47,7 @@
    - `umidade_ar`: entre 0 % e 100 %
    - `umidade_solo`: entre 0 % e 100 %
 5. `[ESP32]` Monta o payload JSON e o assina com HMAC-SHA256 usando a chave do dispositivo:
+
    ```json
    {
      "device_id": "esp32-horta-01",
@@ -56,6 +57,7 @@
      "umidade_solo": 42.0
    }
    ```
+
 6. `[ESP32]` Abre conexão TCP com o servidor e envia `POST /api/v1/readings` com o payload, aguardando resposta por até **5 segundos** (timeout configurável).
 7. `[Servidor]` Recebe a requisição, valida a assinatura HMAC, confere se `device_id` existe no cadastro e persiste o registro no banco de dados (InfluxDB/PostgreSQL).
 8. `[Servidor]` Retorna `HTTP 201 Created` com o corpo `{"id": "read-00892", "accepted": true}`.
@@ -100,6 +102,7 @@
   1. `[ESP32]` Aguarda 2 segundos e tenta ler o DHT22 novamente — repete até **3 tentativas** no total.
   2. `[ESP32]` Se ao menos uma das 3 leituras for válida, usa esse valor no payload e retoma o Fluxo Principal a partir do Passo 4.
   3. `[ESP32]` Se as 3 tentativas falharem, monta o payload com os campos afetados como `null` e inclui o campo de diagnóstico:
+
      ```json
      {
        "device_id": "esp32-horta-01",
@@ -111,6 +114,7 @@
        "attempts": 3
      }
      ```
+
   4. `[ESP32]` Envia o payload normalmente (Passo 6 do Fluxo Principal). O ciclo de leitura não é interrompido para os sensores restantes.
   5. `[Servidor]` Recebe o registro, persiste com os campos nulos e classifica o evento como `SENSOR_FAULT` na tabela de alertas.
   6. `[Servidor]` Se `sensor_error` aparecer em **3 registros consecutivos** do mesmo dispositivo, dispara notificação push/e-mail ao Administrador: _"Sensor DHT22 em ESP32-Horta-01 com falha de leitura desde [timestamp]. Verifique a fiação do pino DATA."_
@@ -169,7 +173,7 @@
 ### Pós-condições
 
 | Cenário | Estado do Sistema |
-|---|---|
+| ------- | ----------------- |
 | Execução bem-sucedida | Leitura persistida no banco com ID confirmado; Dashboard atualizado via WebSocket; ESP32 aguarda próximo ciclo (60 s). |
 | FE-01-A (DHT22 com falha) | Registro parcial com `null` persistido; alerta após 3 falhas consecutivas; automações de temperatura/umidade_ar suspensas. |
 | FE-01-B (Wi-Fi desconectado) | Leituras no buffer NVS; dispositivo "Offline" no Dashboard; dados enviados em lote ao reconectar. |
@@ -182,13 +186,13 @@
 ## UC-02: Acionar Irrigação Manual
 
 | Campo | Descrição |
-|---|---|
+| ----- | --------- |
 | **ID** | UC-02 |
 | **Nome** | Acionar Irrigação Manual |
 | **Ator Principal** | Administrador (usuário autenticado via Dashboard Web) |
 | **Atores Secundários** | Servidor Backend, Broker MQTT, ESP32, Relé, Bomba d'Água |
 
-### Pré-condições
+### Pré-condições (1)
 
 1. O Administrador possui sessão autenticada no Dashboard Web com token JWT válido (não expirado).
 2. O ESP32 está no estado `ONLINE` — o Servidor recebeu heartbeat do dispositivo nos últimos **2 minutos**.
@@ -198,7 +202,7 @@
 
 ---
 
-### Fluxo Principal (Caminho Feliz)
+### Fluxo Principal (Caminho Feliz) (1)
 
 1. `[Administrador]` Acessa o painel do dispositivo "ESP32-Horta-01" no Dashboard Web.
 2. `[Dashboard]` Envia `GET /api/v1/devices/esp32-horta-01/status` ao Servidor para verificar o estado atual.
@@ -208,6 +212,7 @@
 6. `[Dashboard]` Exibe modal de confirmação: _"Confirmar irrigação manual de 90 segundos no setor ESP32-Horta-01?"_
 7. `[Administrador]` Clica em **"Confirmar"**.
 8. `[Dashboard]` Envia ao Servidor `POST /api/v1/devices/esp32-horta-01/commands`:
+
    ```json
    {
      "command": "IRRIGATE",
@@ -216,7 +221,9 @@
      "request_timestamp": "2025-06-15T14:32:10Z"
    }
    ```
+
 9. `[Servidor]` Valida o token JWT, verifica se o dispositivo está `IDLE`, gera o evento `man-irrig-00381`, persiste com status `PENDING` e publica no tópico MQTT `horta/esp32-horta-01/commands`:
+
    ```json
    {
      "command": "IRRIGATE",
@@ -224,23 +231,28 @@
      "event_id": "man-irrig-00381"
    }
    ```
+
 10. `[Servidor]` Retorna `HTTP 202 Accepted` com `{"event_id": "man-irrig-00381", "status": "PENDING"}` ao Dashboard.
 11. `[ESP32]` Recebe a mensagem MQTT, executa `digitalWrite(PIN_RELAY, HIGH)`, inicia o timer local de 90 segundos e publica em `horta/esp32-horta-01/status`:
+
     ```json
     {"state": "IRRIGATING", "event_id": "man-irrig-00381", "remaining_seconds": 90}
     ```
+
 12. `[Servidor]` Recebe o status `IRRIGATING` via MQTT subscription e atualiza o evento `man-irrig-00381` para `EXECUTING`.
 13. `[Dashboard]` Recebe a atualização via WebSocket e exibe **"Irrigando — 90 s restantes"** com barra de progresso decrescente.
 14. `[ESP32]` Ao expirar o timer de 90 segundos, executa `digitalWrite(PIN_RELAY, LOW)` (desliga o relé) e publica:
+
     ```json
     {"state": "IDLE", "event_id": "man-irrig-00381", "duration_executed": 90}
     ```
+
 15. `[Servidor]` Recebe o status `IDLE`, atualiza o evento para `COMPLETED` e registra o timestamp de conclusão.
-16. `[Dashboard]` Exibe **"Irrigação concluída"** com o resumo: _"Duração: 90 s — Acionado por: admin@horta.com — 14:32:10."_
+16. `[Dashboard]` Exibe **"Irrigação concluída"** com o resumo: _"Duração: 90 s — Acionado por: <admin@horta.com> — 14:32:10."_
 
 ---
 
-### Fluxos Alternativos
+### Fluxos Alternativos (1)
 
 #### FA-02-A: Administrador interrompe a irrigação antes do fim
 
@@ -258,6 +270,7 @@
 - **Ponto de desvio:** Passo 3 do Fluxo Principal.
 - **Comportamento:**
   1. `[Servidor]` Detecta que o dispositivo está com `{"state": "IRRIGATING", "triggered_by": "automation_rule_id_7"}` e retorna `HTTP 409 Conflict`:
+
      ```json
      {
        "error": "IRRIGATION_IN_PROGRESS",
@@ -266,12 +279,13 @@
        "remaining_seconds": 45
      }
      ```
+
   2. `[Dashboard]` Exibe o aviso: _"Não é possível acionar manualmente: irrigação automática em andamento. Tempo restante: 45 s. Clique em 'Forçar Parada' para interromper."_
   3. `[Dashboard]` O botão **"Irrigar Agora"** permanece desabilitado; o botão **"Forçar Parada"** é exibido para que o Administrador possa interromper a automação (segue o FA-02-A a partir do passo 2).
 
 ---
 
-### Fluxos de Exceção
+### Fluxos de Exceção (1)
 
 #### FE-02-A: ESP32 não confirma o recebimento do comando MQTT (timeout de ACK)
 
@@ -295,6 +309,7 @@
 - **Comportamento:**
   1. `[ESP32]` Tenta acionar o relé **2 vezes** com intervalo de 1 segundo entre tentativas.
   2. `[ESP32]` Se após as 2 tentativas a corrente ainda for < 0,1 A, executa `digitalWrite(PIN_RELAY, LOW)` imediatamente (segurança: não manter relé ativado sem carga confirmada) e publica:
+
      ```json
      {
        "state": "ERROR",
@@ -304,6 +319,7 @@
        "relay_attempts": 2
      }
      ```
+
   3. `[Servidor]` Recebe o erro, atualiza o evento para `ACTUATOR_ERROR` e dispara alerta crítico imediato ao Administrador: _"Falha crítica: bomba d'água em ESP32-Horta-01 não respondeu ao acionamento. Verifique o relé, fusível e a bomba fisicamente."_
   4. `[Servidor]` Marca o dispositivo com a flag `fault: true` no banco. Qualquer tentativa de irrigação enquanto `fault: true` retorna `HTTP 423 Locked` com `{"error": "DEVICE_FAULT", "detail": "Manual reset required"}`.
   5. `[Dashboard]` Exibe em vermelho: **"Falha no atuador — Bomba não respondeu. ESP32-Horta-01 bloqueado."** O botão **"Irrigar Agora"** é desabilitado permanentemente até que um Administrador acesse `Configurações > Dispositivos > ESP32-Horta-01` e clique em **"Limpar Falha"** após confirmar o reparo físico.
@@ -319,7 +335,7 @@
   1. `[ESP32]` A irrigação **continua normalmente**: o timer de 90 s está rodando no firmware e é completamente independente da presença do Dashboard ou da conexão do cliente.
   2. `[ESP32]` Ao final dos 90 s, desliga o relé (`LOW`) e publica o status `IDLE` normalmente no MQTT (Passo 14 do Fluxo Principal).
   3. `[Servidor]` Recebe o status e conclui o evento `man-irrig-00381` como `COMPLETED` (Passo 15).
-  4. `[Dashboard]` Na próxima vez que o Administrador abrir o Dashboard, o frontend consulta `GET /api/v1/devices/esp32-horta-01/events?limit=10` e exibe no histórico: _"Irrigação manual de 90 s concluída às 14:33:40 — acionada por admin@horta.com."_
+  4. `[Dashboard]` Na próxima vez que o Administrador abrir o Dashboard, o frontend consulta `GET /api/v1/devices/esp32-horta-01/events?limit=10` e exibe no histórico: _"Irrigação manual de 90 s concluída às 14:33:40 — acionada por <admin@horta.com>."_
 
 ---
 
@@ -335,10 +351,10 @@
 
 ---
 
-### Pós-condições
+### Pós-condições (1)
 
 | Cenário | Estado do Sistema |
-|---|---|
+| ------- | ----------------- |
 | Execução bem-sucedida | Relé desligado; evento `COMPLETED` persistido; histórico atualizado; ESP32 retorna ao estado `IDLE`. |
 | FA-02-A (interrupção manual) | Relé desligado imediatamente; evento `COMPLETED_EARLY` com duração real registrada. |
 | FE-02-A (ESP32 inalcançável) | Evento `COMMAND_TIMEOUT`; botão bloqueado 30 s; auditoria registrada; relé **não foi acionado**. |
@@ -352,13 +368,13 @@
 ## UC-03: Executar Irrigação Automática por Regra
 
 | Campo | Descrição |
-|---|---|
+| ----- | --------- |
 | **ID** | UC-03 |
 | **Nome** | Executar Irrigação Automática por Regra |
 | **Ator Principal** | Sistema Automático (Servidor Backend — Motor de Regras) |
 | **Atores Secundários** | ESP32, Broker MQTT, Relé, Administrador (notificado) |
 
-### Pré-condições
+### Pré-condições (2)
 
 1. Existe ao menos uma regra de automação no estado `ACTIVE` no banco (ex: _"Se umidade_solo < 30 % → irrigar por 120 s"_), configurada pelo Administrador.
 2. A leitura mais recente de `umidade_solo` para o dispositivo é válida (não `null`, não `sensor_error`).
@@ -370,13 +386,14 @@
 
 ---
 
-### Fluxo Principal (Caminho Feliz)
+### Fluxo Principal (Caminho Feliz) (2)
 
 1. `[Servidor]` O Motor de Regras é acionado por evento: nova leitura de `umidade_solo = 24 %` chegou via `POST /api/v1/readings` para o dispositivo `esp32-horta-01`.
 2. `[Servidor]` O Motor carrega todas as regras `ACTIVE` associadas ao dispositivo e avalia cada condição. A Regra #7 (`umidade_solo < 30 %`) é satisfeita.
 3. `[Servidor]` Verifica as pré-condições 3 a 7 em sequência. Todas passam.
 4. `[Servidor]` Cria o evento de automação `auto-irrig-00472` com status `SCHEDULED` e persiste no banco com os campos: `rule_id: 7`, `trigger_value: 24`, `threshold: 30`, `device_id: esp32-horta-01`.
 5. `[Servidor]` Publica no tópico MQTT `horta/esp32-horta-01/commands`:
+
    ```json
    {
      "command": "IRRIGATE",
@@ -385,22 +402,27 @@
      "event_id": "auto-irrig-00472"
    }
    ```
+
 6. `[ESP32]` Recebe a mensagem MQTT, executa `digitalWrite(PIN_RELAY, HIGH)`, inicia o timer local de 120 s e publica em `horta/esp32-horta-01/status`:
+
    ```json
    {"state": "IRRIGATING", "event_id": "auto-irrig-00472", "remaining_seconds": 120}
    ```
+
 7. `[Servidor]` Recebe o status `IRRIGATING` via MQTT subscription e atualiza o evento para `EXECUTING`.
 8. `[Dashboard]` Recebe atualização via WebSocket e exibe o indicador **"Irrigação Automática em andamento — Regra #7 — 120 s"** para qualquer Administrador conectado.
 9. `[ESP32]` Ao expirar o timer de 120 s, executa `digitalWrite(PIN_RELAY, LOW)` e publica:
+
    ```json
    {"state": "IDLE", "event_id": "auto-irrig-00472", "duration_executed": 120, "completed": true}
    ```
+
 10. `[Servidor]` Recebe o status `IDLE`, atualiza o evento para `COMPLETED`, registra o timestamp de conclusão e inicia o temporizador de cooldown de 30 minutos para a Regra #7 no dispositivo `esp32-horta-01`.
 11. `[Dashboard]` Registra no histórico: _"Regra #7 executada: umidade_solo=24 % < 30 % → irrigação de 120 s concluída às [timestamp]."_
 
 ---
 
-### Fluxos Alternativos
+### Fluxos Alternativos (2)
 
 #### FA-03-A: Nova leitura indica umidade acima do limiar antes de a irrigação terminar
 
@@ -423,7 +445,7 @@
 
 ---
 
-### Fluxos de Exceção
+### Fluxos de Exceção (2)
 
 #### FE-03-A: Leitura do sensor de umidade do solo chega como `null` ou com `sensor_error`
 
@@ -480,10 +502,10 @@
 
 ---
 
-### Pós-condições
+### Pós-condições (2)
 
 | Cenário | Estado do Sistema |
-|---|---|
+| ------- | ----------------- |
 | Execução bem-sucedida | Relé desligado; evento `COMPLETED` persistido; cooldown de 30 min ativado; histórico com causa registrada. |
 | FA-03-A (`early_stop` ativado) | Relé desligado antes do prazo; evento `COMPLETED_EARLY`; cooldown ativado. |
 | FE-03-A (sensor inválido) | Nenhum relé acionado; regra suspensa; alerta após 3 ciclos consecutivos; retomada automática com próxima leitura válida. |
@@ -501,8 +523,8 @@ Esta especificação serve como contrato comportamental para as próximas etapas
 2. **Contrato de API (Swagger/OpenAPI)** — endpoints mapeados neste documento:
 
    | Método | Endpoint | Referência |
-   |---|---|---|
-   
+   | ------ | -------- | ---------- |
+
    | `POST` | `/api/v1/readings` | UC-01, Passo 7 |
    | `POST` | `/api/v1/readings/batch` | UC-01, FE-01-B |
    | `GET` | `/api/v1/readings` | UC-01, FA-01-A |
