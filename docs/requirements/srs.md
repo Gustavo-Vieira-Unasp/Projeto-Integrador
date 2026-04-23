@@ -1,17 +1,22 @@
 # SW - 1: Requisitos do Software para o Sistema de Monitoramento e Controle de Estufa Inteligente
 
 ## RF-001: Software
-*Descrição:*
-*Prioridade:
-            *Must have:
-            *Should have:
-            *Could Have:
-*Critério de Aceitação:
+
+### Descrição
+
+### Prioridade
+
+- Must have
+- Should have
+- Could have
+
+### Critério de Aceitação
 
 ---
-# HW - 2: Requisitos do Hardware para o Sistema de Monitoramento e Controle de Estufa Inteligente
 
-## RF-001: Unidade de Processamento (ESP32 DevKit)
+## HW - 2: Requisitos do Hardware para o Sistema de Monitoramento e Controle de Estufa Inteligente
+
+### RF-001: Unidade de Processamento (ESP32 DevKit)
 
 **Descrição:**  
 O sistema DEVE utilizar um microcontrolador capaz de coletar dados dos sensores, processar leituras localmente e transmitir os dados via rede Wi-Fi para a API do sistema.
