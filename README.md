@@ -24,7 +24,7 @@
 | ---- | ----- |
 | **Gustavo Vieira** | Banco de Dados |
 | **Jenifer Gomes** | Fullstack|
-| **Luís Gabriel** | — |
+| **Luís Gabriel** | Análise e Frontend |
 | **Philipe Gonçalves** | Hardware |
 | **Victor Herédia** | - |
 
