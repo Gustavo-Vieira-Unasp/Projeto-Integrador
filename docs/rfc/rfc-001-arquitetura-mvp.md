@@ -110,7 +110,7 @@ flowchart LR
 
 > **Instrução:** Descreva **no mínimo 2 cenários** passo a passo, com responsabilidade explícita por passo. Cada cenário deve **citar o UC correspondente** da A1.3.
 
-**Cenário 1: <monitoramento> (atende UC-01)**
+## Cenário 1: < monitoramento > (atende UC-01)
 
 1. ESP32 coleta dados dos sensores
 2. Publica via MQTT (QoS 1)
@@ -119,7 +119,7 @@ flowchart LR
 5. armazena no influxDB
 6. envia via webSocket ao dashboard
 
-**Cenário 2: < irrigação manual > (atende UC-03)**
+## Cenário 2: < irrigação manual > (atende UC-03)
 
 1. Usuário aciona ao dashbord
 2. Frontend envia HTTP
@@ -200,7 +200,7 @@ Escolhemos MQTT por oferecer melhor eficiência, confiabilidade e suporte a QoS 
 
 **Opções consideradas:**
 
-1. **Opção A — <Apenas PostgreSQL>**
+1. ## Opção A — < Apenas PostgreSQL >
 
    - Prós:
    - Simplicidade de arquitetura
@@ -212,7 +212,7 @@ Escolhemos MQTT por oferecer melhor eficiência, confiabilidade e suporte a QoS 
    - consultas de histórico lentas a depender de come se acessa
    - escalabilidade limitada para alta frequência de dados
 
-2. **Opção B — <Apenas InfluxDB>**
+2. ## Opção B — < Apenas InfluxDB >
 
    - Prós:
    - otimizado para dados de sensores
@@ -256,7 +256,7 @@ Adotar a abordagem híbrida, utilizando PostgreSQL para dados estruturados e Inf
 
 > **Instrução:** Wireframes das **4 telas principais** do sistema. Aceita-se: imagens PNG/JPG em `assets/wireframes/` embutidas via markdown, link para projeto público no Figma com screenshot de cada tela embutida, ou wireframes desenhados à mão e fotografados (desde que legíveis). **Não precisa ser bonito** — precisa mostrar quais informações aparecem, quais ações o usuário toma, e como navega entre as telas. **Para cada tela, cite qual UC ela atende.**
 
-### 7.1 Tela 1 — <Dashbord> (atende UC-01)
+### 7.1 Tela 1 — < Dashbord > (atende UC-01)
 
 ![Tela 1](assets/wireframes/tela-1.png)
 
@@ -272,7 +272,7 @@ Adotar a abordagem híbrida, utilizando PostgreSQL para dados estruturados e Inf
 **Ações disponíveis: filtrar os dados
 \*\*Navegação: pelo proprio dashbord
 
-### 7.3 Tela 3 — <Controle> (atende UC-03)
+### 7.3 Tela 3 — < Controle > (atende UC-03)
 
 **Informações exibidas: estado da irrigação da horta
 **Ações disponíveis: ligar e desligar
