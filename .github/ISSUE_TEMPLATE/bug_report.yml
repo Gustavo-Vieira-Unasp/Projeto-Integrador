@@ -1,0 +1,92 @@
+name: 🐛 Bug Report
+description: Reporte um comportamento inesperado ou erro no sistema
+labels: ["bug"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Obrigado por reportar! Preencha os campos abaixo com o máximo de detalhes possível.
+
+  - type: textarea
+    id: descricao
+    attributes:
+      label: Descrição do bug
+      description: O que aconteceu? O que você esperava que acontecesse?
+      placeholder: "Ex: Ao receber uma leitura do sensor de umidade, a API retorna 500 em vez de salvar o dado corretamente."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproducao
+    attributes:
+      label: Passos para reproduzir
+      description: Liste os passos necessários para reproduzir o comportamento.
+      placeholder: |
+        1. Suba o servidor com `npm run dev`
+        2. Envie uma requisição POST /leituras com payload `{ "sensor": "umidade", "valor": null }`
+        3. Observe o erro retornado
+    validations:
+      required: true
+
+  - type: textarea
+    id: comportamento-esperado
+    attributes:
+      label: Comportamento esperado
+      description: O que deveria ter acontecido?
+      placeholder: "Ex: A API deveria retornar 400 com uma mensagem de validação clara, sem crashar."
+    validations:
+      required: true
+
+  - type: textarea
+    id: comportamento-observado
+    attributes:
+      label: Comportamento observado
+      description: O que de fato aconteceu? Inclua status HTTP, resposta da API ou comportamento do Arduino.
+      placeholder: "Ex: A API retornou 500 Internal Server Error e o processo encerrou."
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs ou mensagens de erro
+      description: Cole aqui qualquer erro do terminal, stack trace ou log do servidor.
+      render: shell
+
+  - type: dropdown
+    id: ambiente
+    attributes:
+      label: Ambiente
+      options:
+        - Desenvolvimento (localhost)
+        - Produção
+    validations:
+      required: true
+
+  - type: dropdown
+    id: componente
+    attributes:
+      label: Componente afetado
+      description: Qual parte do sistema apresentou o problema?
+      options:
+        - API / Backend
+        - Integração com Arduino
+        - Leitura de sensores
+        - Banco de dados
+        - Outro
+    validations:
+      required: true
+
+  - type: input
+    id: rota
+    attributes:
+      label: Rota ou endpoint afetado (se aplicável)
+      placeholder: "Ex: POST /leituras, GET /sensores/:id"
+
+  - type: input
+    id: node
+    attributes:
+      label: Versão do Node.js
+      placeholder: "Ex: 20.11.0"
