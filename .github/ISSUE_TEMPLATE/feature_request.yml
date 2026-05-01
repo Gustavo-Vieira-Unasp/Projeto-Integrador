@@ -1,0 +1,67 @@
+name: ✨ Feature Request
+description: Sugira uma nova funcionalidade ou melhoria
+labels: ["feature"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Tem uma ideia para melhorar a Horta Inteligente? Conta pra gente!
+
+  - type: textarea
+    id: problema
+    attributes:
+      label: Qual problema esta feature resolve?
+      description: Descreva o contexto. Ex — "Quando acesso a API, não consigo visualizar o histórico de leituras de um sensor específico por período."
+      placeholder: "Como usuário, eu preciso de..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solucao
+    attributes:
+      label: Solução proposta
+      description: Descreva como você imagina que a feature funcionaria.
+      placeholder: "Ex: Adicionar um endpoint GET /leituras?sensor=umidade&de=2024-01-01&ate=2024-01-31 que retorne o histórico filtrado."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternativas
+    attributes:
+      label: Alternativas consideradas
+      description: Você já pensou em outras formas de resolver o problema? Por que a sua proposta é melhor?
+      placeholder: "Ex: Considerei buscar todos os dados e filtrar no cliente, mas isso sobrecarrega a rede e o Arduino."
+
+  - type: dropdown
+    id: prioridade
+    attributes:
+      label: Prioridade percebida
+      options:
+        - Must Have — o sistema está incompleto sem isso
+        - Should Have — importante, mas dá pra funcionar sem
+        - Could Have — seria legal ter
+        - Won't Have — ideia para o futuro
+    validations:
+      required: true
+
+  - type: dropdown
+    id: componente
+    attributes:
+      label: Componente relacionado
+      description: Qual parte do sistema esta feature afeta?
+      options:
+        - API / Backend
+        - Integração com Arduino
+        - Leitura de sensores
+        - Banco de dados
+        - Outro
+    validations:
+      required: true
+
+  - type: textarea
+    id: contexto
+    attributes:
+      label: Contexto adicional
+      description: Referências, links, exemplos de outros projetos ou qualquer outra informação útil.
