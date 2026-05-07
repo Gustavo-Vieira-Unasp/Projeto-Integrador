@@ -12,3 +12,37 @@
 | 5 | **UC-02** · FE-02-B — detecção de falha no atuador | O ESP32 detecta falha na bomba lendo corrente do ACS712: falha = corrente < 0,1 A após 500 ms; se a conversão ADC→amperes usar a constante errada (66 mV/A do modelo 20A em vez de 185 mV/A do 5A), uma bomba consumindo 0,08 A é lida como 0,28 A e classificada como saudável; o relé fica ativo com bomba sem água | **Unitário** — `readPumpCurrent(adcValue)` com ADC mockado para 0 A, 0,08 A, 0,10 A e 0,12 A; assert: apenas `< 0,1 A` retorna `ACTUATOR_FAIL` | Isola a constante de conversão sem ruído analógico do sensor real; não valida o comportamento do relé após a detecção | Sensor ACS712 real introduz ruído analógico de ±10 mV (≈ ±0,05 A) que impede assert determinístico no limiar exato de 0,1 A; integração ou sistema não isolam a função de conversão ADC→amperes do restante do pipeline de falha |
 | 6 | **UC-03** · FP Passo 2 — motor de regras com sensor nulo | O motor avalia `umidade_solo < 30` quando o campo chega como `null`; em JavaScript, `null < 30` é `false` — a regra não dispara irrigação (resultado acidentalmente correto), mas `RULE_SKIPPED` não é gerado e auditoria fica cega para o período de falha do sensor | **Unitário** — `evaluateRule(rule, {umidade_solo: null})`; assert: `{result: 'SKIPPED', reason: 'SENSOR_DATA_INVALID'}`, zero chamadas ao publicador MQTT | Exercita o caso nulo de forma isolada e determinística; não valida a persistência do evento `RULE_SKIPPED` no banco | Integração exigiria banco + broker ativos e não isolaria se o bug está na avaliação da condição ou na gravação do evento; sistema não consegue forçar leitura nula de forma reproduzível sem modificar o firmware |
 | 7 | **UC-03** · FA-03-B — conflito de prioridade entre regras | Quando Regra #7 (`priority: 1`) e Regra #9 (`priority: 2`) são satisfeitas pelo mesmo payload, o motor deve executar a #7; se `.sort()` for usado sem comparador explícito, o V8 ordena por string — `priority: 10` vem antes de `priority: 2` — e a regra errada é executada | **Unitário** — `resolveRuleConflicts(rules)` com fixtures: prioridades distintas, iguais e `priority: 2` vs `priority: 10`; assert: ordem estável e regra correta selecionada | Detecta comportamento da engine JS sem infraestrutura; não valida o comando MQTT publicado após a seleção | O comportamento do sort depende da engine JS, não da infraestrutura — integração com banco não reproduz o bug; sistema não permite inspecionar qual regra foi selecionada internamente antes da publicação MQTT |
+
+---
+
+## Resumo por nível
+
+| Nível | Riscos cobertos | Critério de uso neste projeto |
+|-------|-----------------|-------------------------------|
+| **Unitário** | #1, #2, #5, #6, #7 | Lógica pura, cálculo ou política de estrutura de dados exercitável sem I/O real; boundary numérico preciso exige input controlado |
+| **Integração** | #3, #4 | Risco emerge do acoplamento entre dois processos reais; mock ocultaria o defeito |
+| **Sistema / Aceitação** | — (v0.2) | Exige hardware físico (ESP32, relé, bomba); não automatizável em CI nesta versão; coberto por checklist manual na v0.2 |
+
+---
+
+## Rastreabilidade testes ↔ UCs
+
+| ID do teste | UC (A1.3) | Fluxo | Risco # |
+|-------------|-----------|-------|---------|
+| `unit.dht22.sentinel-boundary` | UC-01 | FP Passo 4 | #1 |
+| `unit.nvs.fifo-wraparound` | UC-01 | FE-01-B | #2 |
+| `intg.readings.persist-and-stream` | UC-01 | FP Passos 7–10 | #3 |
+| `intg.mqtt.ack-timeout` | UC-02 | FP Passos 9–11 | #4 |
+| `unit.actuator.acs712-conversion` | UC-02 | FE-02-B | #5 |
+| `unit.rules.null-sensor-skip` | UC-03 | FP Passo 2 | #6 |
+| `unit.rules.priority-sort-stable` | UC-03 | FA-03-B | #7 |
+
+---
+
+## Como ler esta matriz
+
+Cada linha responde três perguntas que um dev novo deve conseguir responder só com o conteúdo da tabela:
+
+1. **O que pode quebrar e onde exatamente?** — risco com valores numéricos reais do projeto, não "pode falhar"
+2. **Onde testar e por quê não nos outros níveis?** — nível escolhido + justificativa que descarta os demais
+3. **Vale o custo desse teste?** — trade-off explicita o que o nível escolhido não cobre
