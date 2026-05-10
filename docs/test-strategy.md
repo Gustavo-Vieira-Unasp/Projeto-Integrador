@@ -63,7 +63,7 @@ Conforme definido na [RFC de Arquitetura](rfc/rfc-001-arquitetura-mvp.md), a sel
 
 Falhas em qualquer teste desta suíte devem bloquear o merge até correção.
 
-#### Suíte não bloqueadora
+#### Suíte não bloqueadora 
 
 Os testes abaixo geram alerta, mas não impedem merge:
 
