@@ -20,9 +20,6 @@ Closes #
 - [ ] `refactor` — refatoração sem mudança de comportamento
 - [ ] `chore` — configuração, CI, dependências
 
-## Como foi testado?
-<!-- Descreva o passo a passo para o revisor validar as alterações -->
-
 ## Checklist — Definição de Pronto
 
 - [ ] A descrição explica o "porquê", não só o "o quê"
@@ -33,6 +30,12 @@ Closes #
 - [ ] Não há `console.log` de debug, código morto ou credenciais hardcoded
 - [ ] A documentação foi atualizada se a mudança afeta contrato ou arquitetura
 - [ ] Nenhum dado de sensor ou credencial de hardware está hardcoded
+
+## Como testar?
+<!-- Descreva o passo a passo para o revisor validar as alterações -->
+1.
+2.
+3.
 
 ## Evidências (opcional)
 <!-- Logs, prints de resposta da API, ou saída do Arduino que comprovem o funcionamento -->
