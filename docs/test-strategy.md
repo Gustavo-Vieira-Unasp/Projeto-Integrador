@@ -90,11 +90,89 @@ Cada linha responde três perguntas que um dev novo deve conseguir responder só
 
 ## 1.4 Estratégia de Testes por Nível
 
-*(Espaço reservado para especificações futuras)*.
+A estratégia abaixo reflete a realidade da v0.1 do projeto Horta Inteligente, alinhada à Matriz de Riscos (Seção 1.3) e ao escopo definido.
+
+### Unit Tests (Nível Unitário)
+
+**Materialização no projeto:** Os testes unitários são aplicados a funções puras e módulos isolados no backend da API e no firmware do ESP32, sem dependências externas (banco, broker, hardware). No contexto da horta inteligente, isso inclui validação de leituras de sensores (`validateDHT22Reading`), lógica de buffer circular (`NVSBuffer`), conversão de corrente do atuador (`readPumpCurrent`), avaliação de regras de automação com entradas nulas (`evaluateRule`) e resolução de conflitos de prioridade entre regras (`resolveRuleConflicts`).
+
+**Exemplo baseado na RFC/Matriz:** Conforme risco #5 (FE-02-B — falha no atuador), o componente `ActuatorController` da RFC possui uma função `readPumpCurrent(adcValue)`. O teste unitário `unit.actuator.acs712-conversion` mocks o valor do ADC para cenários de 0 A, 0,08 A, 0,10 A e 0,12 A, garantindo que a constante de conversão (185 mV/A para o sensor ACS712 5A) classifique corretamente uma bomba com consumo < 0,1 A como `ACTUATOR_FAIL`. Este teste isola a lógica de conversão do ruído analógico do hardware real.
+
+### Integration Tests (Nível de Integração)
+
+**Materialização no projeto:** Os testes de integração verificam a comunicação entre dois ou mais processos/componentes reais do sistema, como a API ↔ Banco de Dados (InfluxDB), API ↔ Broker MQTT (Mosquitto), ou API ↔ Cliente WebSocket. No projeto da horta, esse nível valida fluxos onde o risco emerge do acoplamento entre subsistemas e não seria detectado por mocks.
+
+**Exemplo baseado na RFC/Matriz:** Conforme risco #4 (UC-02, FP Passos 9–11 — timeout de ACK do comando MQTT), o teste `intg.mqtt.ack-timeout` orquestra o servidor backend e um contêiner Mosquitto com latência artificial injetada via `tc netem` (9 segundos de delay). O teste envia um comando `IRRIGATE` e verifica se o servidor corretamente registra `COMMAND_TIMEOUT` mesmo que o mock do ESP32 tenha acionado o relé. O trade-off é que o setup exige contêineres (InfluxDB, Mosquitto, API) e aumenta o tempo de CI (~45 segundos), mas reproduz fielmente o comportamento assíncrono real.
+
+### System Tests (Nível de Sistema)
+
+**Materialização no projeto:** Na v0.1, **este nível não é utilizado de forma automatizada** devido à dependência crítica de hardware físico (ESP32, relé, bomba d'água, sensor DHT22 e de umidade). Testes de sistema exigiriam um ambiente de staging com os dispositivos reais, conexão Wi-Fi estável e simulação de condições ambientais controladas (ex: variar umidade do solo fisicamente), o que inviabiliza execução em CI (Continuous Integration) e torna os testes lentos, frágeis e não determinísticos.
+
+**Justificativa da exclusão na v0.1:** A Matriz de Riscos (Seção 1.3) explicita que, para riscos como #1 (sentinel DHT22) e #5 (conversão ACS712), o nível de sistema não fornece benefício adicional em relação aos testes unitários ou de integração, pois não é possível forçar condições de boundary (exatos 85,0°C ou falha de bomba com 0,08 A) de forma reproduzível em hardware real. Também não há orçamento nem tempo para montar um ambiente de staging dedicado com hardware redundante nesta versão do projeto acadêmico.
+
+**Transição para v0.2:** A partir da v0.2, com a introdução do monitoramento por câmera OV2640 e múltiplas zonas de irrigação, testes de sistema manuais serão definidos como checklist de validação em hardware real antes de releases, mas ainda sem automação em CI.
+
+### Acceptance Tests (Nível de Aceitação)
+
+**Materialização no projeto:** Na v0.1, **este nível é aplicado de forma parcial e manual**, pois o dashboard web responsivo ainda está em desenvolvimento e os critérios de aceitação formais (ex: "o usuário deve visualizar a irrigação sendo acionada no dashboard em até 2 segundos após o comando") dependem da interface completa. O foco da v0.1 é a estabilização da API, do firmware e das regras de automação core.
+
+**Justificativa da exclusão automatizada:** Os Casos de Uso fora do escopo (câmera, múltiplas zonas, app mobile) impactariam a definição dos critérios de aceitação finais. Além disso, testes de aceitação automatizados ponta a ponta (ex: Cypress ou Playwright) exigiriam o dashboard completamente implementado e estável, o que não é verdade na v0.1.
+
+**Estratégia atual:** Os critérios de aceitação definidos no SRS (Documento de Requisitos de Software) são usados como base para validação manual em ambiente de desenvolvimento (ex: verificar se a regra de irrigação automática dispara quando a umidade simulada via API está abaixo do limite). Um checklist manual de aceitação será executado antes do Marco 3.
+
+**Transição para v0.2:** Na v0.2, com o dashboard consolidado, está planejada a introdução de cenários Gherkin (Dado/Quando/Então) automatizados com ferramenta como Cucumber.js, validando fluxos completos de usuário (ex: "Dado que estou logado, quando clico em 'Irrigar Agora', então a bomba liga e o status muda para 'Irrigando'").
+
+---
 
 ## 1.5 ADR - Técnica Moderna de Teste
 
-*(Espaço reservado para especificações futuras)*.
+### ADR-001: Adoção de Contract Testing entre ESP32 ↔ API
+
+**Data:** 10/05/2026
+**Status:** Aceito
+**Artefatos relacionados:** [RFC-001 (Arquitetura MVP)](rfc/rfc-001-arquitetura-mvp.md), Seção 1.3 (Riscos #3 e #4), Política de Qualidade (1.6)
+
+---
+
+#### Contexto
+
+O sistema da Horta Inteligente depende da comunicação entre o dispositivo embarcado (ESP32) e a API backend. Esta comunicação ocorre por dois protocolos:
+
+* **HTTP (POST /api/v1/readings):** Envio de leituras de sensores (DHT22, umidade do solo) em formato JSON.
+* **MQTT (tópico `horta/commands`):** Recebimento de comandos de atuadores (IRRIGATE, STOP) pela API.
+
+Atualmente, não há um contrato formal entre as partes. O firmware e o backend evoluem de forma relativamente independente (diferentes desenvolvedores, ciclos de deploy assíncronos). Uma mudança no backend (ex: renomear campo `temperatura` para `temp_celsius` ou alterar de `integer` para `float`) quebraria a integração silenciosamente, causando **perda de dados** (leitura rejeitada com HTTP 400) ou **falha de automação** (comando ignorado por payload inválido). Conforme a Matriz de Riscos (#3 e #4), o risco de acoplamento entre processos justifica a adoção de uma técnica específica de teste.
+
+#### Decisão
+
+Foi adotada a técnica de **Contract Testing** para garantir a compatibilidade entre ESP32 e API ao longo do tempo.
+
+**Implementação concreta:**
+
+1. **Contrato explícito:** Será criado um arquivo `contracts/esp32-api-v1.json` no repositório, utilizando **JSON Schema** (abordagem leve, suportada nativamente em JS/TS e com geradores de código para C++/ESP32).
+2. **Versionamento:** O contrato será versionado junto ao código (`/api/v1/readings` → `esp32-api-v1.json`). Qualquer mudança breaking exige nova versão (ex: `v2`).
+3. **Testes no backend:** O framework de testes da API (Jest) importará o JSON Schema e validará automaticamente os payloads de exemplo e as respostas geradas. Teste `contract.api.complies-with-schema` garantirá que a API não desvia do contrato.
+4. **Geração de código para firmware:** Na pipeline de CI do firmware (PlatformIO), um script validará se as estruturas C++ (ex: `struct SensorReadings`) geram JSON compatível com o contrato. Um teste `contract.firmware.matches-schema` será executado a cada build.
+
+**Exemplo prático (contrato):**
+
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "SensorReading": {
+      "type": "object",
+      "required": ["sensor_id", "temperature_c", "humidity_pct", "soil_moisture_pct", "timestamp_unix"],
+      "properties": {
+        "sensor_id": {"type": "string", "pattern": "^esp32_[a-f0-9]{12}$"},
+        "temperature_c": {"type": "number", "minimum": -10.0, "maximum": 85.0},
+        "humidity_pct": {"type": "number", "minimum": 0.0, "maximum": 100.0},
+        "soil_moisture_pct": {"type": "integer", "minimum": 0, "maximum": 100},
+        "timestamp_unix": {"type": "integer", "minimum": 1700000000}
+      }
+    }
+  }
+}
 
 ## 1.6 Política de Qualidade e Estratégia de Pipeline
 
