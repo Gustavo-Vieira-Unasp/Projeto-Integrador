@@ -173,6 +173,7 @@ Foi adotada a técnica de **Contract Testing** para garantir a compatibilidade e
     }
   }
 }
+```
 
 ## 1.6 Política de Qualidade e Estratégia de Pipeline
 
@@ -215,9 +216,40 @@ Todo bug corrigido deve gerar pelo menos um teste permanente de regressão para 
 
 A política de qualidade e regressão deve seguir as regras de proteção de branch e fluxo de versionamento definidos no plano SCM do projeto.
 
-## 1.7 Evidência de Execução - Teste Contratual
+## 1.7 Evidência de Execução - Teste Contratual (ADR-001)
 
-*(Espaço reservado para especificações futuras)*.
+Conforme definido no ADR-001 e ancorado na Issue #3 (Riscos #3 e #4), o teste de contrato valida se a comunicação entre o dispositivo IoT (ESP32) e a API de Referência respeita o esquema de dados JSON e as restrições de tipo.
+
+**Especificações do Teste:**
+
+* Arquivo de Teste: docs/test-strategy/contract/test_api_leituras.py
+
+* Alvos:
+  * `POST /leituras` (Registro de dados)
+  * `GET /health` (Liveness check)
+
+* Cobertura: Status Code (201 Created / 200 OK), Validação de Schema (JSON Schema Draft-07 com CamelCase) e validação de tipos de sensores (`dht22`, `capacitivo`, `ldr`).
+
+Log de Execução (Evidência Automatizada)
+
+```log
+============================= test session starts =============================
+platform win32 -- Python 3.14.2, pytest-9.0.3, pluggy-1.6.0
+rootdir: C:\Users\gusta\Documents\codes\Projeto-Integrador
+collected 9 items
+
+docs/test-strategy/contract/test_api_leituras.py::TestContractAPILeituras::test_healthcheck_endpoint PASSED
+docs/test-strategy/contract/test_api_leituras.py::TestContractAPILeituras::test_post_leituras_status_code_and_required_fields PASSED
+docs/test-strategy/contract/test_api_leituras.py::TestContractAPILeituras::test_post_leituras_schema_completo PASSED
+docs/test-strategy/contract/test_api_leituras.py::TestContractAPILeituras::test_schema_validation_leitura_valida PASSED
+docs/test-strategy/contract/test_api_leituras.py::TestContractAPILeituras::test_schema_rejeita_valores_invalidos[sensor-sensor_invalido-is not one of] PASSED
+docs/test-strategy/contract/test_api_leituras.py::TestContractAPILeituras::test_schema_rejeita_valores_invalidos[device_id--should be non-empty] PASSED
+docs/test-strategy/contract/test_api_leituras.py::TestContractAPILeituras::test_schema_rejeita_valores_invalidos[valor-n\xe3o \xe9 n\xfamero-is not of type] PASSED
+docs/test-strategy/contract/test_api_leituras.py::TestContractAPILeituras::test_schema_requires_all_mandatory_fields PASSED
+docs/test-strategy/contract/test_api_leituras.py::TestContractAPILeituras::test_integration_contrato_api_bate_com_schema PASSED
+
+============================== 9 passed in 8.32s ==============================
+```
 
 ## 1.8 Lições Aprendidas e Pendências para v0.2
 
