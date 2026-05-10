@@ -98,7 +98,44 @@ Cada linha responde três perguntas que um dev novo deve conseguir responder só
 
 ## 1.6 Política de Qualidade e Estratégia de Pipeline
 
-*(Espaço reservado para especificações futuras)*.
+### Suíte obrigatória para merge em `main`
+
+* Validação dos endpoints principais da API.
+* Testes do fluxo de monitoramento ambiental em tempo real.
+* Testes do acionamento manual da irrigação.
+* Verificação básica de comunicação entre backend e dashboard.
+
+Falhas em qualquer teste desta suíte devem bloquear o merge até correção.
+
+### Suíte não bloqueadora
+
+Os testes abaixo geram alerta, mas não impedem merge:
+
+* Testes experimentais de performance.
+* Verificações visuais não críticas do dashboard.
+* Testes de funcionalidades ainda em validação.
+* Logs de cobertura parcial de testes.
+
+Esses alertas devem ser analisados pela equipe antes da release final.
+
+### Política de execução nightly e release
+
+Antes de releases oficiais, deve ser executada uma suíte completa de regressão contendo:
+
+* Testes de integração entre ESP32, backend e dashboard.
+* Verificação da comunicação MQTT.
+* Testes das automações de irrigação.
+* Validação dos fluxos críticos da aplicação.
+
+A execução manual da suíte de release é obrigatória antes da publicação de novas versões.
+
+### Política de regressão permanente
+
+Todo bug corrigido deve gerar pelo menos um teste permanente de regressão para evitar problemas futuros no sistema.
+
+### Consistência com o plano SCM
+
+A política de qualidade e regressão deve seguir as regras de proteção de branch e fluxo de versionamento definidos no plano SCM do projeto.
 
 ## 1.7 Evidência de Execução - Teste Contratual
 
