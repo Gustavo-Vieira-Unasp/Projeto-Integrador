@@ -6,18 +6,18 @@
 **RFC de referência:** RFC-XXX (A1.4) — [`docs/rfc/rfc-xxx.md`](../rfc/rfc-xxx.md)  
 **Atividade:** A1.7 — Entrega E2E de 1 tela do dashboard  
 
--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+---
 
 ## 1. Telas candidatas avaliadas
 
 As 4 telas previstas na RFC (seção 7) avaliadas pelos três eixos exigidos pela A1.7:
 
-| Tela                  | UC atendido | Risco Técnico | Complexidade | Aprendizado Gerado | Score |
-| --------------------- | ----------- | ------------- | ------------ | ------------------ | ----- |
-| **Home (Dashboard)**  | UC-01       | 🔴 Alto       | 🔴 Alta       | 🟢 Muito Alto      | ★★★   |
-| Histórico             | UC-02       | 🟡 Médio      | 🟡 Média      | 🟡 Médio           | ★★    |
-| Controle de Irrigação | UC-03       | 🟡 Médio      | 🟡 Média      | 🟡 Médio           | ★★    |
-| Configurações         | UC-XX       | 🟢 Baixo      | 🟢 Baixa      | 🔴 Baixo           | ★     |
+| Tela | UC atendido | Risco Técnico | Complexidade | Aprendizado Gerado | Score |
+| ---- | ----------- | ------------- | ------------ | ------------------ | ----- |
+| **Home (Dashboard)** | UC-01 | 🔴 Alto | 🔴 Alta | 🟢 Muito Alto | ⭐⭐⭐ |
+| Histórico | UC-02 | 🟡 Médio | 🟡 Média | 🟡 Médio | ⭐⭐ |
+| Controle de Irrigação | UC-03 | 🟡 Médio | 🟡 Média | 🟡 Médio | ⭐⭐ |
+| Configurações | UC-XX | 🟢 Baixo | 🟢 Baixa | 🔴 Baixo | ⭐ |
 
 **Critérios de pontuação:**
 
@@ -25,8 +25,7 @@ As 4 telas previstas na RFC (seção 7) avaliadas pelos três eixos exigidos pel
 - **Complexidade:** quantidade de componentes distintos, variação de estados visuais, composição do layout.
 - **Aprendizado gerado:** o quanto fechar essa tela valida decisões que se propagam para todas as demais.
 
--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
+---
 
 ## 2. Tela escolhida
 
@@ -36,7 +35,7 @@ As 4 telas previstas na RFC (seção 7) avaliadas pelos três eixos exigidos pel
 
 Atende diretamente ao **UC-01** (monitoramento em tempo real) e parcialmente ao **UC-03** (irrigação manual via Ação Rápida).
 
--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+---
 
 ## 3. Justificativa (risco / complexidade / aprendizado)
 
@@ -49,8 +48,7 @@ A Home concentra simultaneamente os três maiores riscos técnicos do projeto:
 - **Ação de escrita com feedback de estado:** o botão "Iniciar Irrigação" dispara o fluxo completo: Frontend → HTTP → Backend NestJS → MQTT → ESP32 → Relé → Bomba (Cenário 2, RFC seção 5.2). Esse ciclo precisa de estados de loading, sucesso e falha visíveis. Resolver esse padrão aqui significa que a tela de Controle recebe o padrão pronto.
 
 > Se o WebSocket travar ou o mock não refletir o shape real dos eventos, é melhor descobrir na A1.7 — não depois de três telas construídas sobre a mesma abstração.
--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
+---
 
 ### 3.2 Complexidade — por que ela força o design system a existir
 
@@ -67,8 +65,8 @@ A Home obriga a construção de componentes reutilizados em todas as outras tela
 | `<ErrorTable />`   | Log global                           |
 
 Começar por Configurações produziria componentes de CRUD usados apenas lá. A Home gera a **biblioteca base** do dashboard inteiro.
--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+---
 
 ### 3.3 Aprendizado — o que esta tela valida que as outras não validam
 
@@ -77,8 +75,7 @@ Começar por Configurações produziria componentes de CRUD usados apenas lá. A
 3. **Decisão de biblioteca de gráfico:** o `TrendChart` com múltiplas séries, dois eixos Y e filtro de período (30min / 1h / 6h / 24h) é o caso mais exigente do projeto. Escolher a biblioteca aqui — com o caso mais difícil — garante que a escolha escala para o Histórico.
 4. **Padrão de atualização via WebSocket:** a RFC define Socket.IO para tempo real. O mock simula esse comportamento. Se o intervalo de atualização revelar problema de performance no gráfico com re-renders frequentes, o problema é resolvido antes de afetar as outras telas.
 
--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
+---
 
 ### 3.4 Por que as outras telas não foram escolhidas
 
@@ -86,17 +83,15 @@ Começar por Configurações produziria componentes de CRUD usados apenas lá. A
 - **Controle de Irrigação (UC-03):** a ação de escrita já é coberta pelo `<QuickAction />` da Home. Isolar essa tela como primeira entrega não acrescentaria aprendizado além do que a Home já força — e perderia todos os componentes de leitura que o restante precisa.
 - **Configurações (UC-XX):** CRUD de regras de irrigação automática. Baixo risco, baixa complexidade, baixo aprendizado. Fechar primeiro seria otimizar o que não é crítico.
 
--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
+---
 
 ## 4. Wireframe da versão implementada
+
 > O wireframe reflete **exatamente** o que está sendo implementado.
 
 O wireframe original definido na RFC foi mantido como referência de planejamento e base conceitual da interface.
 
 A versão apresentada nesta seção reflete a implementação real da A1.7, incorporando ajustes feitos durante o desenvolvimento para melhorar usabilidade, hierarquia visual e organização dos componentes.
-
-
 
 **Arquivo:** `docs/dashboard/wireframes/home-v1.png`
 
@@ -149,7 +144,7 @@ A versão apresentada nesta seção reflete a implementação real da A1.7, inco
 - Filtro de período customizado no gráfico
 - Histórico completo de erros com paginação
 
--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+---
 
 ### 4.1 Diferença entre wireframe original e implementado
 
@@ -164,34 +159,22 @@ A versão implementada na A1.7 realizou ajustes com foco em usabilidade:
 
 Motivo: melhorar escaneabilidade e reduzir carga cognitiva do usuário durante o monitoramento em tempo real
 
--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
+---
 
 ## 5. Estados visuais cobertos
 
 Os 4 estados obrigatórios da A1.7 estão marcados com ✅. Os demais são específicos do domínio da Home.
 
-| #    | Estado                        |                           O que aparece para o usuário                                     |
-|------| ------------------------------| -------------------------------------------------------------------------------------------|
-| ✅ 1 | **Carregando**                | Skeleton loader nos cards de métrica e no gráfico; spinner no header com                   |
-|      |                               | "Atualizando..."; painéis com placeholder cinza                                            |
-|-----------------------------------------------------------------------------------------------------------------------------------|
-| ✅ 2 | **Sucesso (dados completos)** | Gauges preenchidos, gráfico multisérie renderizado, alertas exibidos por                   |
-|      |                                | severidade, status Online                                                                 |
-|-----------------------------------------------------------------------------------------------------------------------------------|
-| ✅ 3 | **Erro de fetch**             | Banner no topo: "Não foi possível atualizar os dados" + botão "Tentar novamente";          |
-|      |                               | dados anteriores permanecem visíveis com opacidade reduzida                                |
-|-----------------------------------------------------------------------------------------------------------------------------------|
-| ✅ 4 | **Dado vazio / parcial**      | Sensor sem leitura exibe `--` no card com badge vermelho; gráfico mostra apenas séries     |
-|      |                               | disponíveis                                                                                |
-|-----------------------------------------------------------------------------------------------------------------------------------|
-| 5 | **Alerta crítico ativo**         | Card com borda vermelha e ícone de alerta; não bloqueia interação                          |
-|-----------------------------------------------------------------------------------------------------------------------------------|
-| 6 | **Irrigação em andamento**       | Botão muda para "Irrigando..."; contador regressivo; ação desabilitada até finalizar       |
-|-----------------------------------------------------------------------------------------------------------------------------------|
+| # | Estado | O que aparece para o usuário |
+| :--- | :--- | :--- |
+| ✅ 1 | **Carregando** | Skeleton loader nos cards de métrica e no gráfico; spinner no header com "Atualizando..."; painéis com placeholder cinza. |
+| ✅ 2 | **Sucesso (dados completos)** | Gauges preenchidos, gráfico multisérie renderizado, alertas exibidos por severidade, status Online. |
+| ✅ 3 | **Erro de fetch** | Banner no topo: "Não foi possível atualizar os dados" + botão "Tentar novamente"; dados anteriores permanecem visíveis com opacidade reduzida. |
+| ✅ 4 | **Dado vazio / parcial** | Sensor sem leitura exibe `--` no card com badge vermelho; gráfico mostra apenas séries disponíveis. |
+| 5 | **Alerta crítico ativo** | Card com borda vermelha e ícone de alerta; não bloqueia interação. |
+| 6 | **Irrigação em andamento** | Botão muda para "Irrigando..."; contador regressivo; ação desabilitada até finalizar. |
 
-
--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+---
 
 ## 6. Estrutura de mock
 
@@ -216,24 +199,25 @@ const dataSource = import.meta.env.VITE_USE_MOCK === "true"
 
 Trocar para integração real = `VITE_USE_MOCK=false` no `.env.production`. Nenhum componente muda.
 
--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+---
 
 ## 7. Decisão de stack
 
 Itens já definidos na RFC são referenciados. Itens novos são documentados aqui como atualização de ADR.
 
-| Decisão                   | Escolha       | Definido em           | Justificativa                                                    |
-| --------------------------| --------------| ----------------------| -----------------------------------------------------------------|
-| Framework frontend        | React 18.2    | RFC seção 4           | Interface reativa e dinâmica                                     |
-| Comunicação tempo real    | Socket.IO 4.7 | RFC seção 4           | Atualização em tempo real no dashboard                           |
-| Banco de séries temporais | InfluxDB 2.7  | RFC seção 4 / ADR-002 | Otimizado para dados de sensores em alta frequência              |
-| **Biblioteca de gráfico** | **Recharts**  | **Este documento**    | Suporte nativo a múltiplos eixos Y e séries mistas; API declarativa compatível com React; menor bundle que Chart.js para o caso de uso de linha temporal com re-renders frequentes via Socket.IO. Alternativas descartadas: Chart.js (API imperativa, conflita com o modelo React); Visx (baixo nível, custo de desenvolvimento desproporcional para o prazo) |
+| Decisão | Escolha | Definido em | Justificativa |
+| :--- | :--- | :--- | :--- |
+| Framework frontend | React 18.2 | RFC seção 4 | Interface reativa e dinâmica |
+| Comunicação tempo real | Socket.IO 4.7 | RFC seção 4 | Atualização em tempo real no dashboard |
+| Banco de séries temporais | InfluxDB 2.7 | RFC seção 4 / ADR-002 | Otimizado para dados de sensores em alta frequência |
+| **Biblioteca de gráfico** | **Recharts** | **Este documento** | Suporte nativo a múltiplos eixos Y e séries mistas; API declarativa compatível com React; menor bundle que Chart.js para o caso de uso de linha temporal com re-renders frequentes via Socket.IO. Alternativas descartadas: Chart.js (API imperativa, conflita com o modelo React); Visx (baixo nível, custo de desenvolvimento desproporcional para o prazo) |
 | **Gerenciador de estado** | **React useState + useReducer** | **Este documento** | Sem necessidade de estado global na v1 — dados chegam por socket isolado por componente. Zustand entra na A1.8 se o evento WebSocket global precisar alimentar múltiplas telas simultaneamente |
 | **Fetch / estado assíncrono** | **TanStack Query (React Query)** | **Este documento** | Cache automático, refetch em intervalo configurável, estados de loading/error/success nativos — elimina boilerplate que seria escrito manualmente para os 4 estados obrigatórios da A1.7 |
 
 > Recharts, useReducer e TanStack Query não constavam na RFC original. Esta seção registra essas três decisões como atualização de ADR. Nenhuma contradiz a stack definida — são escolhas de camada de apresentação que a RFC deixou em aberto.
 
--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+---
+
 ## 8. Rastreabilidade requisito → tela → teste
 
 | Requisito (UC) | Componente na tela | Teste | Estado coberto |
@@ -248,7 +232,7 @@ Itens já definidos na RFC são referenciados. Itens novos são documentados aqu
 > Cada teste deve estar ancorado em uma linha da matriz risco→teste da A1.6.  
 > Log de execução: `docs/dashboard/evidencias/home-test-run.log`
 
--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+---
 
 ## 9. Definition of Done
 
@@ -267,7 +251,7 @@ Itens já definidos na RFC são referenciados. Itens novos são documentados aqu
 - [ ] Estados controlados via lógica na Home (loading, error, vazio, offline)
 - [ ] Estrutura preparada para alternância entre mock e API via variável de ambiente
 
--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+---
 
 ## 10. Limitações conhecidas (v1)
 
@@ -278,10 +262,10 @@ Itens já definidos na RFC são referenciados. Itens novos são documentados aqu
 
 Essas limitações serão resolvidas na próxima entrega (A1.8).
 
--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+---
 
 ## 11. Conclusão
 
 A implementação da Home valida os principais riscos técnicos do sistema (tempo real, estados de falha e ação de escrita), estabelece o padrão visual e de componentes reutilizáveis e prepara a base para integração com backend real na A1.8 sem refatoração da camada de UI.
 
--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+---
