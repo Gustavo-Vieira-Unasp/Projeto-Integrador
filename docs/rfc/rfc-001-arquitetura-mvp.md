@@ -1,9 +1,6 @@
 # RFC-XXX: <Título curto da decisão arquitetural> — <Nome do projeto>
 
-> **Como usar este template:**
-> Copie este arquivo para `docs/rfc/rfc-001-arquitetura-mvp.md` no repositório da equipe e preencha cada seção. Apague todos os blocos `> Instrução: ...` antes de entregar — eles existem só para te guiar. Veja [`exemplo-rfc.md`](exemplo-rfc.md) para um exemplo completo aplicado a outro projeto.
-
----
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=
 
 ## Cabeçalho
 
@@ -16,18 +13,17 @@
 | Marco     | Marco 2 — Projetos conceituais aprovados     |
 | Substitui | —                                            |
 
----
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=
+
 
 ## 1. Contexto e Motivação
 
-> **Instrução:** Em 4 a 8 linhas, descreva o sistema em termos de **capacidades**, não de tecnologias. Responda: o que o sistema faz, para quem, e qual é o cenário físico/operacional em que ele vive (restrições, ambiente, usuários típicos). Não cite ainda nenhuma tecnologia (Node, React, Postgres, etc.) — isso vem na seção 4. Aqui é só "o que" e "por quê", em linguagem de negócio.
-> o sistema realiza o monitoramento contínuo das condições ambientais de uma horta comunitéria e executa ações automáticas de irrigação quando necessário. O mesmo é utilizado por cuidadores e administradores responsaveis pelo cultivo, que nem sempre estão presentes no local, uma operação externa e sujeito a variações climáticas, falhas de energia e instabilidade de conectividade. O sistema deve se manter funcionando continuamente mesmo com esses tipos de interrupcao, com objetivo de apoiar o cuidado da horta, reduzir desperdicio de agua e evitando condições inadequadas para as plantas
+o sistema realiza o monitoramento contínuo das condições ambientais de uma horta comunitéria e executa ações automáticas de irrigação quando necessário. O mesmo é utilizado por cuidadores e administradores responsaveis pelo cultivo, que nem sempre estão presentes no local, uma operação externa e sujeito a variações climáticas, falhas de energia e instabilidade de conectividade. O sistema deve se manter funcionando continuamente mesmo com esses tipos de interrupcao, com objetivo de apoiar o cuidado da horta, reduzir desperdicio de agua e evitando condições inadequadas para as plantas
 
----
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=
+
 
 ## 2. Escopo deste Marco
-
-> **Instrução:** Liste objetivamente o que **está dentro** desta RFC e o que **fica deliberadamente de fora** (para versões futuras). O objetivo é evitar que o avaliador (ou o cliente) cobre por algo que vocês conscientemente decidiram não entregar agora. Use duas listas curtas: "Dentro" e "Fora".
 
 **Dentro do escopo:**
 
@@ -45,11 +41,11 @@
 - Integração com visão computacional em tempo real (câmera)
 - Controle de múltiplas zonas independentes de irrigação
 
----
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=
+
 
 ## 3. Requisitos Atendidos
 
-> **Instrução:** Faça uma lista com links relativos para os artefatos da equipe que esta RFC referencia, e indique quais são os **UCs críticos** que a arquitetura promete suportar (mínimo 3). A rastreabilidade entre RFC e Casos de Uso é avaliada — não pule.
 
 - SRS (A1.2): [`docs/requirements/srs.md`](../requirements/srs.md)
 - Casos de Uso (A1.3): [`docs/requirements/casos-de-uso.md`](../requirements/casos-de-uso.md)
@@ -60,11 +56,12 @@
 - **UC-02** — <Visualização de dados no histórico>
 - **UC-03** — <Controle de irrigação (manual e automático)>
 
----
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=
+
 
 ## 4. Stack Tecnológica
 
-> **Instrução:** Tabela com as escolhas por camada. **Versões pinadas obrigatoriamente** — nada de "latest" ou "mais recente". A coluna "Por quê" tem **no máximo uma frase**; o trade-off detalhado vai no ADR correspondente da seção 6.
+
 
 | Camada                 | Tecnologia            | Versão       | Por quê (1 frase)                            |
 | ---------------------- | --------------------- | ------------ | -------------------------------------------- |
@@ -77,7 +74,8 @@
 | Banco relacional       | PostgreSQL            | 15           | Armazena dados estruturados                  |
 | Banco temporal         | InfluxDB              | 2.7          | Otimizado para séries temporais              |
 
----
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=
+
 
 ## 5. Arquitetura do Sistema
 
@@ -96,19 +94,13 @@
 
 ### 5.1 Diagrama de Componentes
 
-> **Instrução:** Mostre os componentes principais e suas conexões. Aceita-se imagem em `assets/`, código Mermaid embutido, PlantUML, ou link público para Draw.io/Figma com screenshot embutida. **Cada seta deve ter um rótulo** indicando o tipo de comunicação (HTTP REST, WebSocket, SQL, Serial, etc.).
-> arquitetura em:
-> docs/assets/arquitetura.png
+O png do diagrama ilustrativo de componentes se encontra dentro da pasta assets 
 
-```mermaid
-flowchart LR
-  A[Componente A] -- HTTP REST --> B[Componente B]
-  B -- SQL --> C[(Banco)]
-```
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=
+
 
 ### 5.2 Fluxo de Dados (Cenários)
 
-> **Instrução:** Descreva **no mínimo 2 cenários** passo a passo, com responsabilidade explícita por passo. Cada cenário deve **citar o UC correspondente** da A1.3.
 
 ## Cenário 1: < monitoramento > (atende UC-01)
 
@@ -128,9 +120,11 @@ flowchart LR
 5. ESP32 aciona relé
 6. Bomba é acionada
 
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=
+
+
 ### 5.3 Fronteiras e Responsabilidades
 
-> **Instrução:** Para cada componente principal, diga em uma linha **o que ele é responsável por** e **o que ele NÃO faz**. Definir o que NÃO é responsabilidade é tão importante quanto definir o que é.
 
 | Componente  | Responsável por                                   | NÃO faz                               |
 | ----------- | ------------------------------------------------- | ------------------------------------- |
@@ -141,11 +135,9 @@ flowchart LR
 | PostgreSQL  | Configurações                                     | Não armazena séries temporais         |
 | Frontend    | Interface do usuário                              | Não executa lógica crítica            |
 
----
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=
 
 ## 6. Decisões de Arquitetura (ADRs)
-
-> **Instrução:** Mínimo de **2 ADRs** documentando decisões com trade-off real. Cada ADR vai **embutido aqui** (não em arquivo separado). Decisões que não envolvem trade-off (ex: "escolhemos Git porque todo mundo usa") não viram ADR. Escolhas como REST vs WebSocket, SQL vs NoSQL, polling vs push, monolito vs serviços, hospedagem em nuvem vs local, sim — viram ADR. Use o formato abaixo para cada uma.
 
 ### ADR-001: Uso de MQTT
 
@@ -189,7 +181,8 @@ Escolhemos MQTT por oferecer melhor eficiência, confiabilidade e suporte a QoS 
   - Dependência de broker MQTT
   - Maior complexidade de infraestrutura
 
----
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=
+
 
 ### ADR-002: <Banco híbrido>
 
@@ -250,11 +243,11 @@ Adotar a abordagem híbrida, utilizando PostgreSQL para dados estruturados e Inf
   - necessidade de gerenciar dois bancos
   - Sincronizacao e manutencao mais difíces
 
----
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=
+
 
 ## 7. Telas (Wireframes)
 
-> **Instrução:** Wireframes das **4 telas principais** do sistema. Aceita-se: imagens PNG/JPG em `assets/wireframes/` embutidas via markdown, link para projeto público no Figma com screenshot de cada tela embutida, ou wireframes desenhados à mão e fotografados (desde que legíveis). **Não precisa ser bonito** — precisa mostrar quais informações aparecem, quais ações o usuário toma, e como navega entre as telas. **Para cada tela, cite qual UC ela atende.**
 
 ### 7.1 Tela 1 — < Dashbord > (atende UC-01)
 
@@ -284,9 +277,11 @@ Adotar a abordagem híbrida, utilizando PostgreSQL para dados estruturados e Inf
 **Ações disponíveis: editar
 \*\*Navegação: controle
 
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=
+
+
 ## 8. Riscos e Mitigações
 
-> **Instrução:** Mínimo de **3 riscos específicos da arquitetura escolhida**. Riscos genéricos como "atraso na entrega" ou "alguém ficar doente" não contam — esses entram no plano de projeto, não na RFC. Aqui ficam riscos diretamente ligados às decisões técnicas que vocês acabaram de tomar.
 
 | Risco                            | Probabilidade | Impacto | Mitigação                                    |
 | -------------------------------- | ------------- | ------- | -------------------------------------------- |
@@ -294,20 +289,22 @@ Adotar a abordagem híbrida, utilizando PostgreSQL para dados estruturados e Inf
 | Indisponibilidade do broker MQTT | Média         | Alto    | Reconexão automática com backoff exponencial |
 | Dados inconsistentes             | Média         | Médio   | Validação e sanitização no backend           |
 
----
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=
+
 
 ## 9. Fora do Escopo / Próximos Passos
 
-> **Instrução:** Curtinho. O que esta RFC **não** resolve e fica para uma RFC futura ou para a próxima fase do PI. Reforça os limites da seção 2 e dá visibilidade para o que vem depois.
 
 - Aplicativo mobile
 - VIsao computacional
 - ...
 
----
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=
+
 
 ## Referências
 
-> **Instrução (opcional):** Links para documentação oficial das tecnologias escolhidas, artigos que embasaram decisões, RFCs de outros projetos que vocês consultaram, etc.
 
 - ...
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=

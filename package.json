@@ -1,0 +1,29 @@
+{
+  "name": "projeto-integrador",
+  "version": "1.0.0",
+  "description": "<p align=\"center\">\r     <em>Sistema embarcado de monitoramento ambiental e irrigação automatizada para hortas comunitárias</em>\r </p>",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:mock": "tsx src/scripts/verificarSensores.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gustavo-Vieira-Unasp/Projeto-Integrador.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Gustavo-Vieira-Unasp/Projeto-Integrador/issues"
+  },
+  "homepage": "https://github.com/Gustavo-Vieira-Unasp/Projeto-Integrador#readme",
+  "devDependencies": {
+    "tsx": "^4.22.1",
+    "vitest": "^4.1.6"
+  }
+}
