@@ -7,7 +7,8 @@
     "doc": "docs"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest run",
+    "test:evidencia": "node -e \"const fs=require('fs'); const d=new Date(); const ymd=d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0'); const logPath='docs/dashboard/evidencias/run-'+ymd+'.txt'; fs.mkdirSync('docs/dashboard/evidencias',{recursive:true}); fs.writeFileSync(logPath,'=== LOG DE EXECUÇÃO DE TESTE ===\\nData/Hora: '+d.toLocaleString()+'\\n\\n'); const {execSync}=require('child_process'); try{const out=execSync('npx vitest run --environment jsdom src/services/appController.test.js',{encoding:'utf8'}); fs.appendFileSync(logPath,out);}catch(e){fs.appendFileSync(logPath,e.stdout||e.message); process.exit(1);}\"",
     "test:mock": "tsx src/scripts/verificarSensores.ts"
   },
   "repository": {
@@ -24,6 +25,7 @@
   "homepage": "https://github.com/Gustavo-Vieira-Unasp/Projeto-Integrador#readme",
   "devDependencies": {
     "tsx": "^4.22.1",
-    "vitest": "^4.1.6"
+    "vitest": "^4.1.6",
+    "jsdom": "^24.0.0"
   }
 }
