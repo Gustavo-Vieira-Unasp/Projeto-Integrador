@@ -1,0 +1,11 @@
+﻿PASS src/__tests__/fallback.test.js
+  Observabilidade - sinal de modo degradado (C5)
+    OK incrementa data_source_fallback_total quando Azure cai e Render responde
+    OK mantem data_source_fallback_total zerado quando Azure responde normalmente
+
+Test Suites: 1 passed, 1 total
+Tests:       2 passed, 2 total
+Snapshots:   0 total
+
+Comando: npm test -- --testPathPattern=fallback --verbose
+Data: 2026-06-26

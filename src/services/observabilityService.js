@@ -6,6 +6,7 @@ const metrics = {
   fetch_error_total: 0,
   screen_render_ms: {},
   alerts_displayed_total: 0,
+  data_source_fallback_total: 0,
 };
 
 let currentRequestId = null;
@@ -48,6 +49,15 @@ export function logWarn(event, fields = {}) {
 export function logError(event, fields = {}) {
   metrics.fetch_error_total += 1;
   return emit('error', event, fields);
+}
+
+export function registrarFallback(cenario) {
+  metrics.data_source_fallback_total += 1;
+  return logWarn('data_source_fallback', {
+    cenario,
+    total: metrics.data_source_fallback_total,
+    mensagem: `[DEGRADADO] Sistema operando em modo fallback. Fonte: ${cenario}`,
+  });
 }
 
 export function recordScreenRender(screen, durationMs) {
