@@ -47,6 +47,7 @@ Expostas via `window.__PHORTA_METRICS__()` no console:
 | `fetch_error_total` | Counter | Falhas de fetch acumuladas |
 | `screen_render_ms` | Gauge map | Tempo de render por tela (`principal`, `alertas`, `historico`, `canteiros`) |
 | `alerts_displayed_total` | Counter | Total de alertas exibidos |
+| `data_source_fallback_total` | Counter | Vezes que o sistema operou em modo degradado (fallback) na sessão atual. `0` = Azure respondendo normalmente. `> 0` = sistema usando Render, cache ou offline. |
 
 ### Como inspecionar (local)
 
@@ -59,7 +60,43 @@ window.__PHORTA_METRICS__()
 
 ---
 
-## 3. Runbook — erro persistente em produção
+## 3. Runbook — modo degradado (fallback silencioso)
+
+### Sintoma: dados do dashboard parecem desatualizados mas não há erro visível
+
+Este é o cenário mais crítico: o sistema funciona, mas está servindo dados de uma
+fonte secundária. Não há erro na tela — a degradação é invisível para o usuário final.
+
+| Passo | Ação | O que verificar |
+|-------|------|-----------------|
+| 1 | Abrir DevTools → Console | Procurar logs com `"event":"data_source_fallback"` e `"level":"warn"` |
+| 2 | Verificar o campo `cenario` no log | `render-live` = Render ativo; `*-cached` = cache ativo; `offline` = crítico |
+| 3 | Verificar contador | `window.__PHORTA_METRICS__()` → checar `data_source_fallback_total > 0` |
+| 4 | Verificar Azure | `curl https://horta-api-htggarb3eagagpgm.brazilsouth-01.azurewebsites.net/api/historico/completo?minutosAtras=60` |
+| 5 | Se Azure fora | Acionar responsável pela infra Azure. Dados do dashboard podem estar desatualizados — comunicar usuários se necessário |
+| 6 | Quando Azure voltar | Sistema retorna automaticamente para `cenario: normal` no próximo ciclo de fetch |
+
+**Log esperado quando em modo degradado:**
+```json
+{
+  "timestamp": "2026-06-25T14:32:00.000Z",
+  "level": "warn",
+  "event": "data_source_fallback",
+  "requestId": "req_1234_abc",
+  "cenario": "render-live",
+  "total": 1,
+  "mensagem": "[DEGRADADO] Sistema operando em modo fallback. Fonte: render-live"
+}
+```
+
+**Referência de código:**
+- Contador: `src/services/observabilityService.js` → `metrics.data_source_fallback_total`
+- Registro: `src/services/dataService.js` → `fetchDashboardPayload()` → bloco `if (payload.cenario !== 'normal')`
+- Teste de regressão: `src/__tests__/fallback.test.js`
+
+---
+
+## 4. Runbook — erro persistente em produção
 
 ### Sintoma: dashboard mostra "Erro ao carregar" ou fica offline
 
@@ -80,7 +117,7 @@ window.__PHORTA_METRICS__()
 
 ---
 
-## 4. Evidência de funcionamento
+## 5. Evidência de funcionamento
 
 Log de exemplo capturado em ambiente local (`npm run preview`):
 
